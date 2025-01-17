@@ -9,17 +9,21 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { useNavigate } from "react-router-dom";
 
 const menuItems = [
-  { icon: Home, label: "Overview", active: false },
-  { icon: Users, label: "Followers", active: true },
-  { icon: Heart, label: "Likes", active: false },
-  { icon: MessageCircle, label: "Comments", active: false },
-  { icon: TrendingUp, label: "Promotions", active: false },
-  { icon: Settings, label: "Preferences", active: false },
+  { icon: Home, label: "Overview", path: "/" },
+  { icon: Users, label: "Followers", path: "/followers" },
+  { icon: Heart, label: "Likes", path: "/likes" },
+  { icon: MessageCircle, label: "Comments", path: "/comments" },
+  { icon: TrendingUp, label: "Promotions", path: "/promotions" },
+  { icon: Settings, label: "Preferences", path: "/preferences" },
 ];
 
 export function DashboardSidebar() {
+  const navigate = useNavigate();
+  const currentPath = window.location.pathname;
+
   return (
     <Sidebar>
       <SidebarContent>
@@ -31,21 +35,21 @@ export function DashboardSidebar() {
               className="h-12 w-12 rounded-full"
             />
             <div>
-              <h3 className="font-semibold">kitty_kate</h3>
-              <p className="text-sm text-muted-foreground">@kitty_kate</p>
+              <h3 className="font-semibold">{localStorage.getItem('instagram_username') || 'Loading...'}</h3>
+              <p className="text-sm text-muted-foreground">@{localStorage.getItem('instagram_username') || 'Loading...'}</p>
             </div>
           </div>
           <div className="mt-4 flex justify-between text-sm">
             <div>
-              <p className="font-semibold">789</p>
+              <p className="font-semibold">{localStorage.getItem('followers_count') || '0'}</p>
               <p className="text-muted-foreground">Followers</p>
             </div>
             <div>
-              <p className="font-semibold">2891</p>
-              <p className="text-muted-foreground">Likes</p>
+              <p className="font-semibold">{localStorage.getItem('follows_count') || '0'}</p>
+              <p className="text-muted-foreground">Following</p>
             </div>
             <div>
-              <p className="font-semibold">241</p>
+              <p className="font-semibold">{localStorage.getItem('comments_count') || '0'}</p>
               <p className="text-muted-foreground">Comments</p>
             </div>
           </div>
@@ -55,7 +59,10 @@ export function DashboardSidebar() {
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.label}>
-                  <SidebarMenuButton className={item.active ? "bg-primary/10 text-primary" : ""}>
+                  <SidebarMenuButton 
+                    className={currentPath === item.path ? "bg-primary/10 text-primary" : ""}
+                    onClick={() => navigate(item.path)}
+                  >
                     <item.icon className="h-4 w-4" />
                     <span>{item.label}</span>
                   </SidebarMenuButton>

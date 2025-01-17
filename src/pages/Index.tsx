@@ -3,9 +3,9 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { StatsCard } from "@/components/StatsCard";
 import { FollowersChart } from "@/components/FollowersChart";
-import { Users, UserMinus, UserX, Lock, Calendar, Users2 } from "lucide-react";
+import { Users, MessageCircle, Image, Users2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchInstagramStats, type InstagramStats } from "@/services/instagramApi";
+import { fetchInstagramStats } from "@/services/instagramApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
@@ -21,6 +21,15 @@ const Index = () => {
     queryFn: () => fetchInstagramStats(token),
     enabled: !!token,
   });
+
+  useEffect(() => {
+    if (stats) {
+      localStorage.setItem('instagram_username', stats.username);
+      localStorage.setItem('followers_count', stats.followers_count.toString());
+      localStorage.setItem('follows_count', stats.follows_count.toString());
+      localStorage.setItem('comments_count', (stats.comments_count || 0).toString());
+    }
+  }, [stats]);
 
   const handleTokenSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,14 +98,14 @@ const Index = () => {
               value={stats?.follows_count || 0}
             />
             <StatsCard
-              icon={Calendar}
+              icon={Image}
               title="Posts"
               value={stats?.media_count || 0}
             />
             <StatsCard
-              icon={Users2}
-              title="Username"
-              value={stats?.username || ''}
+              icon={MessageCircle}
+              title="Comments"
+              value={stats?.comments_count || 0}
             />
           </div>
           <FollowersChart />
