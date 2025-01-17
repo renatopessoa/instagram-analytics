@@ -1,20 +1,20 @@
+import { useQuery } from '@tanstack/react-query';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-
-const data = [
-  { name: 'Sun', followers: 10 },
-  { name: 'Mon', followers: 15 },
-  { name: 'Tue', followers: 15 },
-  { name: 'Wed', followers: 20 },
-  { name: 'Thu', followers: 20 },
-  { name: 'Fri', followers: 30 },
-  { name: 'Sat', followers: 40 },
-];
+import { fetchFollowersHistory } from '@/services/instagramApi';
 
 export function FollowersChart() {
+  const token = localStorage.getItem('instagram_access_token') || '';
+  
+  const { data = [] } = useQuery({
+    queryKey: ['followers-history', token],
+    queryFn: () => fetchFollowersHistory(token),
+    enabled: !!token,
+  });
+
   return (
     <div className="chart-container">
       <div className="mb-6 flex items-center justify-between">
-        <h3 className="text-lg font-semibold">New Followers</h3>
+        <h3 className="text-lg font-semibold">Followers Growth</h3>
         <div className="flex gap-4">
           <button className="text-sm text-muted-foreground hover:text-foreground">Last 365 days</button>
           <button className="text-sm text-muted-foreground hover:text-foreground">Last 30 days</button>
