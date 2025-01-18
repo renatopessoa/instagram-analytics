@@ -59,7 +59,12 @@ const defaultInsightsParams: InsightsParams = {
   limit: 5000
 };
 
-export const fetchInsights = async (token: string, params: Partial<InsightsParams> = {}) => {
+export const fetchInsights = async (params: Partial<InsightsParams> = {}) => {
+  const token = localStorage.getItem('INSTAGRAM_API_TOKEN');
+  if (!token) {
+    throw new Error('Instagram API token not found');
+  }
+
   const mergedParams = { ...defaultInsightsParams, ...params };
   const fieldsString = mergedParams.fields.join(',');
   const timeRangeString = JSON.stringify(mergedParams.timeRange);
@@ -197,14 +202,11 @@ export const fetchPromotionsData = async (accessToken: string): Promise<Promotio
 };
 
 export const useInsightsQuery = (params: Partial<InsightsParams> = {}) => {
+  const token = localStorage.getItem('INSTAGRAM_API_TOKEN');
+  
   return useQuery({
     queryKey: ['insights', params],
-    queryFn: async () => {
-      const token = process.env.INSTAGRAM_API_TOKEN;
-      if (!token) {
-        throw new Error('Instagram API token not found');
-      }
-      return fetchInsights(token, params);
-    },
+    queryFn: () => fetchInsights(params),
+    enabled: !!token,
   });
 };
