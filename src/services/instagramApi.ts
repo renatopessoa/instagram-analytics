@@ -1,103 +1,68 @@
-const INSTAGRAM_API_BASE_URL = 'https://graph.instagram.com/v12.0';
+import { useQuery } from '@tanstack/react-query';
 
-export interface InstagramStats {
-  followers_count: number;
-  follows_count: number;
-  media_count: number;
-  username: string;
-  comments_count?: number;
+const BASE_URL = 'https://graph.facebook.com/v18.0';
+const CAMPAIGN_ID = 'act_6003515804749';
+
+interface InsightsParams {
+  timeIncrement: number;
+  timeRange: {
+    since: string;
+    until: string;
+  };
+  level: string;
+  fields: string[];
+  limit: number;
 }
 
-export interface Campaign {
-  id: string;
-  name: string;
-  description: string;
-  image: string;
-  performance: number;
-  status: 'active' | 'completed' | 'scheduled';
-}
+const defaultInsightsParams: InsightsParams = {
+  timeIncrement: 1,
+  timeRange: {
+    since: '2024-11-01',
+    until: '2024-31-12'
+  },
+  level: 'adset',
+  fields: [
+    'campaign_name',
+    'adset_name',
+    'spend',
+    'impressions',
+    'clicks',
+    'cpc',
+    'ctr',
+    'video_p25_watched_actions'
+  ],
+  limit: 5000
+};
 
-export interface PromotionsData {
-  activeCampaigns: number;
-  reach: number;
-  engagementRate: number;
-  conversions: number;
-  campaigns: Campaign[];
-}
+export const fetchInsights = async (token: string, params: Partial<InsightsParams> = {}) => {
+  const mergedParams = { ...defaultInsightsParams, ...params };
+  const fieldsString = mergedParams.fields.join(',');
+  const timeRangeString = JSON.stringify(mergedParams.timeRange);
+  
+  const url = `${BASE_URL}/${CAMPAIGN_ID}/insights?time_increment=${mergedParams.timeIncrement}&time_range=${timeRangeString}&level=${mergedParams.level}&fields=${fieldsString}&limit=${mergedParams.limit}&access_token=${token}`;
 
-export const fetchInstagramStats = async (accessToken: string): Promise<InstagramStats> => {
   try {
-    const response = await fetch(
-      `${INSTAGRAM_API_BASE_URL}/me?fields=followers_count,follows_count,media_count,username&access_token=${accessToken}`
-    );
-    
+    const response = await fetch(url);
     if (!response.ok) {
-      throw new Error('Failed to fetch Instagram stats');
+      throw new Error('Failed to fetch insights');
     }
-
     const data = await response.json();
-    return {
-      ...data,
-      comments_count: 241, // Hardcoded since Instagram API doesn't provide this directly
-    };
+    return data.data;
   } catch (error) {
-    console.error('Error fetching Instagram stats:', error);
+    console.error('Error fetching insights:', error);
     throw error;
   }
 };
 
-export const fetchFollowersHistory = async (accessToken: string, days: number = 7) => {
-  // Note: Instagram's Graph API doesn't provide historical follower data
-  // This is a mock implementation that generates data based on the number of days
-  const data = [];
-  const today = new Date();
-  
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date(today);
-    date.setDate(date.getDate() - i);
-    data.push({
-      name: date.toLocaleDateString('en-US', { weekday: 'short' }),
-      followers: Math.floor(Math.random() * 30) + 10,
-      likes: Math.floor(Math.random() * 50) + 20,
-      promotions: Math.floor(Math.random() * 40) + 15,
-    });
-  }
-  
-  return data;
-};
-
-export const fetchPromotionsData = async (accessToken: string): Promise<PromotionsData> => {
-  // Mock data since Instagram's API doesn't provide this information directly
-  return {
-    activeCampaigns: 3,
-    reach: 15420,
-    engagementRate: 4.2,
-    conversions: 126,
-    campaigns: [
-      {
-        id: '1',
-        name: 'Summer Collection Launch',
-        description: 'Promoting our new summer fashion collection with influencer partnerships',
-        image: 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81',
-        performance: 92,
-        status: 'active'
-      },
-      {
-        id: '2',
-        name: 'Brand Awareness Campaign',
-        description: 'Increasing brand visibility through targeted content and hashtag strategy',
-        image: 'https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7',
-        performance: 78,
-        status: 'active'
-      },
-      {
-        id: '3',
-        name: 'Product Showcase',
-        description: 'Highlighting key features and benefits of our flagship products',
-        image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085',
-        performance: 85,
-        status: 'active'
+export const useInsightsQuery = (params: Partial<InsightsParams> = {}) => {
+  return useQuery({
+    queryKey: ['insights', params],
+    queryFn: async () => {
+      const token = process.env.INSTAGRAM_API_TOKEN;
+      if (!token) {
+        throw new Error('Instagram API token not found');
       }
-    ]
-  };
+      return fetchInsights(token, params);
+    },
+  });
 };
