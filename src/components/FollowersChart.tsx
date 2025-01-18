@@ -11,7 +11,7 @@ export function FollowersChart() {
   const location = useLocation();
   
   const { data = [] } = useQuery({
-    queryKey: ['followers-history', token, selectedDays],
+    queryKey: ['followers-history', token, selectedDays, location.pathname],
     queryFn: () => fetchFollowersHistory(token, selectedDays),
     enabled: !!token,
   });
@@ -29,6 +29,8 @@ export function FollowersChart() {
         return 'Followers Growth';
       case '/likes':
         return 'Likes Overview';
+      case '/comments':
+        return 'Comments Analysis';
       case '/promotions':
         return 'Promotions Performance';
       default:
@@ -63,6 +65,20 @@ export function FollowersChart() {
           strokeWidth={2}
           dot={false}
           name="Likes"
+        />
+      );
+    }
+
+    if (location.pathname === '/comments') {
+      lines.push(
+        <Line
+          key="comments"
+          type="monotone"
+          dataKey="comments"
+          stroke="#4ade80"
+          strokeWidth={2}
+          dot={false}
+          name="Comments"
         />
       );
     }
